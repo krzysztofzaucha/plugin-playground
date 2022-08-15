@@ -1,0 +1,90 @@
+@startuml
+
+<style>
+componentDiagram {
+  BackGroundColor white
+  LineThickness 1
+  LineColor #333333
+}
+document {
+  BackGroundColor white
+}
+</style>
+
+skinparam defaulttextalignment center
+
+' Interfaces
+
+package "Service (kz-plugin-playground-base:latest)" as service_package {
+    interface "PluginLoader" as plugin_loader_interface {
+        + Load(module string) error
+    }
+    note bottom of plugin_loader_interface
+        Responsible for loading plugins
+    end note
+    interface "PluginRunner" as plugin_runner_interface {
+        + Run() error
+    }
+    note bottom of plugin_runner_interface
+        Responsible for handling plugins execution
+    end note
+    interface "PluginLoadRunner" as plugin_load_runner_interface {
+        + Load(module string) error
+        + Run() error
+    }
+
+    package "Integration" as integration_package {
+        interface "PluginExecutor" as plugin_executor_interface {
+            + Execute() error
+        }
+        note bottom of plugin_executor_interface
+            Executes plugin logic
+        end note
+    }
+
+    ' Implementations
+
+    class "ServiceContainer" as service_container {
+        + New() *di.Container
+        + Manager() *Manager
+    }
+    class "Manager" as manager {
+        - module plugin.Symbol
+        + Load(module string) error
+        + Run() error
+    }
+}
+
+package "WebServer (kz-plugin-playground-plugin-web-server:latest)" as web_server_package {
+    class "WebServer" as web_server {
+        + Execute() error
+    }
+    ' Whatever other sub components (e.g. routes) are developed and deployed within this package.
+}
+
+package "Command (kz-plugin-playground-plugin-command:latest)" as command_package {
+    class "Command" as command {
+        + Execute() error
+    }
+}
+
+' Low level relations/dependencies
+
+plugin_load_runner_interface ..o plugin_loader_interface
+plugin_load_runner_interface ..o plugin_runner_interface
+
+manager ..|> plugin_load_runner_interface
+
+service_container ..> plugin_load_runner_interface
+service_container --> manager
+
+' Plugin level relations/dependencies
+
+web_server ..|> plugin_executor_interface
+command ..|> plugin_executor_interface
+
+' Other
+
+plugin_runner_interface ..> plugin_executor_interface
+
+@enduml
