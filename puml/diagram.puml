@@ -70,8 +70,8 @@ package "Command (kz-plugin-playground-plugin-command:latest)" as command_packag
 
 ' Low level relations/dependencies
 
-plugin_load_runner_interface ..o plugin_loader_interface
-plugin_load_runner_interface ..o plugin_runner_interface
+plugin_load_runner_interface o.. plugin_loader_interface
+plugin_load_runner_interface o.. plugin_runner_interface
 
 manager ..|> plugin_load_runner_interface
 
